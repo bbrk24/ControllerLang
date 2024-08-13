@@ -1,0 +1,22 @@
+div, span {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    align-content: flex-start;
+    gap: 0.25em;
+}
+
+.vertical {
+    flex-flow: column nowrap;
+}
+
+img {
+    width: 1.5em;
+    height: 1.5em;
+}
+
+.box {
+    border: max(1px, 0.0625em) solid black;
+    padding: 0.125em;
+    flex-wrap: nowrap;
+}

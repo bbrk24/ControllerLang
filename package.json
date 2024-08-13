@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@danielx/hera": "^0.8.16"
+  },
+  "devDependencies": {
+    "@danielx/civet": "^0.7.22",
+    "express": "^4.19.2",
+    "esbuild": "^0.23.0"
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "start": "node -e \"(e => e().use(e.static('dist')).listen(3000))(require('express'))\""
+  },
+  "engines": {
+    "node": ">=19.0.0"
+  }
+}

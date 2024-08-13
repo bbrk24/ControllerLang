@@ -1,0 +1,86 @@
+# TODO: Describe sentence structure
+Grammar
+  _* Word (_ Word)* _* ->
+    return [$2, ...$3.map(el => el[1])];
+
+_
+  /\s+/
+
+# MARK: Word
+# A word can be a single input, or an input chord (delimited by square brackets).
+# An input has up to three properties:
+#  - `lt`: A single string describing the left thumb's action. "M" = minus
+#  - `s`: An array of up to four strings describing the shoulder/trigger buttons
+#  - `rt`: An array of up to two strings describing the right thumb's action. "P" = plus
+# The left thumb cannot perform two actions at once, and the right thumb may only perform
+# two actions if they are adjacent face buttons (e.g. A+B).
+Word
+  # single input
+  Input ->
+    return { type: 'single', input: $1 };
+  # input chord with validation
+  "[" Input (_ Input)+ "]" ->
+    function overlaps(in1, in2) {
+      if ((in1.rt && in2.rt) || (in1.lt && in2.lt)) return true;
+      if (!(in1.s && in2.s)) return false;
+      return in1.s.some(in2.s.includes, in2.s);
+    }
+    const presses = $3.map(el => el[1]);
+    if (presses.some(el => overlaps($2, el))) return $skip;
+    return { type: 'chord', input: [$2, ...presses] };
+
+Direction
+  "u"
+  "d"
+  "l"
+  "r"
+
+StickDirection
+  "ul"
+  "ur"
+  "dl"
+  "dr"
+  Direction
+  "t" # twirl
+  "i" # "in", i.e. click
+
+LeftThumb
+  "LS" StickDirection ->
+    return $1 + $2;
+  "D" Direction ->
+    return $1 + $2;
+  "M"
+
+Shoulder
+  "L"
+  "R"
+  "ZL"
+  "ZR"
+
+Plus
+  "+"
+
+RightThumb
+  "RS" StickDirection ->
+    return [$1 + $2];
+  "A" Plus "B" -> ["A", "B"]
+  "A" Plus "X" -> ["A", "X"]
+  "B" Plus "Y" -> ["B", "Y"]
+  # X+Y intentionally omitted for now
+  "A" -> ["A"]
+  "B" -> ["B"]
+  "X" -> ["X"]
+  "Y" -> ["Y"]
+  "P" -> ["P"]
+
+Shoulders
+  Shoulder (Plus Shoulder)* ->
+    return [$1, ...$2.map(el => el[1])];
+
+Input
+  RightThumb (Plus LeftThumb)? (Plus Shoulders)? ->
+    return { rt: $1, lt: $2?.[1], s: $3?.[1] };
+  LeftThumb (Plus Shoulders)? ->
+    return { lt: $1, s: $2?.[1] };
+  Shoulders -> 
+    return { s: $1 };

@@ -1,0 +1,88 @@
+cache from ./ImageCache.civet
+
+export interface Input
+  s?: string[]
+  lt?: string
+  rt?: string[]
+
+export type WordJSON =
+  |{type: 'single', input: Input}
+  | type: 'chord', input: Input[]
+
+function expandDirection(dir: string): string
+  Array.from dir, (u: 'up', d: 'down', l: 'left', r: 'right', i: 'in', t: 'twirl')[&]
+    .join '_'
+
+function rtToImg(rt: string[]): HTMLImageElement
+  cache.getImage switch rt
+      ['P']
+        'plus'
+      [/^RS/]
+        rest := rt.0[2...]
+        `rstick_${expandDirection rest}`
+      else
+        `${rt.join '+'}`
+
+function ltToImg(lt: string): HTMLImageElement
+  cache.getImage switch lt
+      'M'
+        'minus'
+      /^LS/
+        rest := lt[2...]
+        `lstick_${expandDirection rest}`
+      /^D/
+        rest := lt[1...]
+        `dpad_${expandDirection rest}`
+      else
+        throw new SyntaxError `Invalid left thumb input: ${lt}`
+
+function inputToHTML(input: Input): HTMLElement
+  arr: HTMLImageElement[] := []
+  if input.rt
+    arr.push rtToImg input.rt
+  if input.lt
+    arr.push ltToImg input.lt
+  if input.s
+    if 'L' is in input.s and 'R' is in input.s
+      arr.push cache.getImage 'L+R'
+      if 'ZL' is in input.s
+        arr.push cache.getImage 'ZL'
+      if 'ZR' is in input.s
+        arr.push cache.getImage 'ZR'
+    else
+      for s of input.s
+        arr.push cache.getImage s
+  if arr# is 1
+    arr.0
+  else
+    document.createElement 'span'
+      ||> .className = 'vertical'
+      ||> .append ...arr
+
+export class Word
+  private type!: 'single' | 'chord'
+  private input!: Input | Input[]
+
+  private @()
+
+  toJSON()
+    { @type, @input } as WordJSON
+  
+  @fromJSON(json: WordJSON): Word
+    new @
+      ||> .type = json.type
+      ||> .input = json.input
+
+  toHTML(): HTMLElement
+    type := @type
+    switch type
+      'single'
+        inputToHTML @input as Input
+      'chord'
+        container := document.createElement 'span'
+          ||> .className = 'box'
+        (@input as Input[]).map inputToHTML
+          |> container.append ...(.)
+        container
+      else
+        type satisfies never

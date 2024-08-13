@@ -1,0 +1,17 @@
+{ parse } from ./parser.hera
+{ Word, type WordJSON } from ./Word.civet
+
+output := document.getElementById('output')!
+
+function changeListener(this: HTMLTextAreaElement): void
+  try
+    words: WordJSON[] := parse @value
+    output.innerHTML = ''
+    output.append ...words.map Word.fromJSON(.).toHTML()
+  catch e
+    console.error e
+    output.innerText = 'Invalid input'
+
+input := (document.getElementById('input') as HTMLTextAreaElement)
+  ||> .addEventListener 'input', changeListener, { +passive }
+changeListener.call input
