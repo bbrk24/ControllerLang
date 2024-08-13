@@ -75,12 +75,15 @@ RightThumb
 
 Shoulders
   Shoulder (Plus Shoulder)* ->
-    return [$1, ...$2.map(el => el[1])];
+    const arr = [$1, ...$2.map(el => el[1])];
+    const set = new Set(arr);
+    if (set.size !== arr.length) return $skip;
+    return arr;
 
 Input
-  RightThumb (Plus LeftThumb)? (Plus Shoulders)? ->
-    return { rt: $1, lt: $2?.[1], s: $3?.[1] };
-  LeftThumb (Plus Shoulders)? ->
-    return { lt: $1, s: $2?.[1] };
+  LeftThumb (Plus RightThumb)? (Plus Shoulders)? ->
+    return { lt: $1, rt: $2?.[1], s: $3?.[1] };
+  RightThumb (Plus Shoulders)? ->
+    return { rt: $1, s: $2?.[1] };
   Shoulders -> 
     return { s: $1 };

@@ -1,0 +1,72 @@
+export interface ControllerInputEvent
+  buttons: Set<string>
+
+export default class Controller < EventTarget
+  @#registry = new FinalizationRegistry (controller: Controller) =>
+    window.removeEventListener 'gamepadconnected', controller#connectListener
+    window.removeEventListener 'gamepaddisconnected', controller#disconnectListener
+    clearInterval controller#interval
+
+  #gamepad: Gamepad?
+  #index: number
+
+  #connectListener = (e: GamepadEvent) =>
+      if e.gamepad.index is #index
+        #gamepad = e.gamepad
+  #disconnectListener = (e: GamepadEvent) =>
+      if e.gamepad is #gamepad
+        #gamepad = undefined
+  #interval: number
+
+  get #index
+  set index(newValue: number)
+    newValue >>>= 0
+    return if newValue is #index
+    #index = newValue
+    #gamepad = undefined
+    #autodetectGamepad()
+
+  get #gamepad?.id
+
+  axisThreshold = 0.8
+  buttonMapping: Partial<Record<number, string>> = [
+    'Y'
+    'B'
+    'A'
+    'X'
+    'L'
+    'R'
+    'ZL'
+    'ZR'
+    'M'
+    'P'
+    'LSi'
+    'RSi'
+  ]
+  /** Mapping of axis number => [if negative, if positive] */
+  axisMapping: Partial<Record<number, [string, string]>> = {
+    0: ['LSl', 'LSr']
+    1: ['LSu', 'LSd']
+    2: ['RSl', 'RSr']
+    5: ['RSu', 'RSd']
+  }
+
+  @(index: number, public readonly periodMS: number)
+    super()
+    #index = index
+
+    window.addEventListener 'gamepadconnected', #connectListener
+    window.addEventListener 'gamepaddisconnected', #disconnectListener
+
+    setTimeout => #autodetectGamepad()
+    #interval = setInterval => #checkEvents(), periodMS 
+    Controller.#registry.register @, @
+
+  #autodetectGamepad(): void
+    return if #gamepad?
+    gamepads := navigator.getGamepads()
+    if gamepads# > #index
+      #gamepad = gamepads[#index] ?? undefined
+  
+  #checkEvents(): void
+    // TODO
