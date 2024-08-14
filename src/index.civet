@@ -1,6 +1,7 @@
 { parse } from ./parser.hera
 { Word, type WordJSON } from ./Word.civet
 { translate, type Clause } from ./translation/index.civet
+Controller from ./Controller.civet
 
 output := document.getElementById('output')!
 translation := document.getElementById('translation')!
@@ -8,8 +9,9 @@ translation := document.getElementById('translation')!
 function changeListener(this: HTMLTextAreaElement): void
   translation.innerText = ''
   try
-    words: WordJSON[] := parse @value, startRule: 'Words'
     output.innerHTML = ''
+    return if @value.trim() is ''
+    words: WordJSON[] := parse @value, startRule: 'Words'
     output.append ...words.map Word.fromJSON(.).toHTML()
     if clauses? := (try parse(@value)) as Clause[]?
       try
@@ -23,3 +25,70 @@ function changeListener(this: HTMLTextAreaElement): void
 input := (document.getElementById('input') as HTMLTextAreaElement)
   ||> .addEventListener 'input', changeListener, { +passive }
 changeListener.call input
+
+mergeAxes := (s: Set<string>) =>
+  // @ts-expect-error Yes I'm adding booleans. Shut up about it
+  if s.has('LSu') + s.has('LSr') + s.has('LSd') + s.has('LSl') >= 3
+    s.delete 'LSu'
+    s.delete 'LSr'
+    s.delete 'LSd'
+    s.delete 'LSl'
+    s.add 'LSt'
+  // @ts-expect-error
+  if s.has('RSu') + s.has('RSr') + s.has('RSd') + s.has('RSl') >= 3
+    s.delete 'RSu'
+    s.delete 'RSr'
+    s.delete 'RSd'
+    s.delete 'RSl'
+    s.add 'RSt'
+
+  iter := (stick: string, first: string, second: string): void =>
+    if s.has(stick+first) and s.has(stick+second)
+      s.delete stick+first
+      s.delete stick+second
+      s.add stick+first+second
+
+  iter 'LS', 'u', 'r'
+  iter 'LS', 'u', 'l'
+  iter 'LS', 'd', 'r'
+  iter 'LS', 'd', 'l'
+  iter 'RS', 'u', 'r'
+  iter 'RS', 'u', 'l'
+  iter 'RS', 'd', 'r'
+  iter 'RS', 'd', 'l'
+
+inputOrder := [
+  'LSu', 'LSur', 'LSr', 'LSdr', 'LSd', 'LSdl', 'LSl', 'LSul'
+  'LSi'
+  'Du', 'Dr', 'Dd', 'Dl'
+  'M'
+  'RSu', 'RSur', 'RSr', 'RSdr', 'RSd', 'RSdl', 'RSl', 'RSul'
+  'RSi'
+  'A'
+  'B'
+  'X'
+  'Y'
+  'P'
+  'L'
+  'R'
+  'ZL'
+  'ZR'
+]
+
+controller := new Controller 0
+totalInputs .= new Set<string>
+setInterval
+  =>
+    inputs := controller.inputs
+    if inputs?
+      if inputs.size
+        inputs.forEach totalInputs.add .
+      else
+        if totalInputs.size
+          mergeAxes totalInputs
+          inArr := Array.from totalInputs
+            .sort (a, b) => inputOrder.indexOf(a) - inputOrder.indexOf(b)
+          input.value += ' ' + inArr.join '+'
+          changeListener.call input
+        totalInputs = new Set
+  comptime Math.ceil 1000/30

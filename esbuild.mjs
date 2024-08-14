@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as esbuild from 'esbuild';
 import yaml from 'js-yaml';
 import heraPlugin from '@danielx/hera/esbuild-plugin';
-import civetPlugin from '@danielx/civet/dist/esbuild-plugin.js';
+import civetPlugin from '@danielx/civet/esbuild';
 
 async function compileYaml(filename) {
     const file = await fs.readFile(filename, { encoding: 'utf-8' });
@@ -21,7 +21,13 @@ await Promise.all([
         bundle: true,
         platform: 'browser',
         outfile: 'dist/index.js',
-        plugins: [heraPlugin(), civetPlugin()],
+        plugins: [
+            heraPlugin(),
+            civetPlugin({
+                parseOptions: { comptime: true },
+                ts: 'preserve',
+            }),
+        ],
         minify: true,
         sourcemap: true,
     }),
