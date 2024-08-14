@@ -1,7 +1,68 @@
-# TODO: Describe sentence structure
 Grammar
-  _* Word (_ Word)* _* ->
+  _* Clause (_+ Clause)* _* ->
     return [$2, ...$3.map(el => el[1])];
+
+Words
+  _* Word (_+ Word)* _* ->
+    return [$2, ...$3.map(el => el[1])];
+
+Clause
+  Adverb _+ Clause ->
+    const adverbs = [$1, ...($3.adverbs ?? [])];
+    return { ...$3, adverbs };
+  Intransitive _+ FullNP ->
+    return { verb: $1, subject: $3 };
+  Transitive _+ FullNP _+ FullNP ->
+    return { verb: $1, subject: $3, object: $5 };
+
+# NP without conjunctions
+NP
+  Adverb _+ NP ->
+    const adverbs = [$1, ...($3.adverbs ?? [])];
+    return { ...$3, adverbs };
+  Clause
+  Pronoun ->
+    return { pronoun: $1 };
+  Determiner ->
+    return { determiner: $1 };
+
+# Actual NP
+FullNP
+  NP _+ Relativizer _+ Clause ->
+    return { relativizer: $3, noun: $1, clause: $5 };
+  NP 
+
+# MARK: Parts of Speech
+# Adverbs are a small and relatively uncommon class of words, so they must all start with the minus button
+Adverb
+  Word ->
+    if ($1.type === 'single') {
+      if ($1.input.lt !== 'M')
+        return $skip;
+    } else if ($1.input[0].lt !== 'M')
+      return $skip;
+    return $1;
+
+Determiner
+  Word ->
+    if ($1.type !== 'single') return $skip;
+    if ($1.lt || $1.rt) return $skip;
+    return $1;
+
+# The one-letter definitions are placeholders until I decide the actual shape of each type of word
+# Pronouns are a closed class and I can't imagine there being multiple relativizers
+# so those two might just be hardcoded
+Pronoun
+  "p"
+
+Relativizer
+  "r"
+
+Intransitive
+  "i"
+
+Transitive
+  "t"
 
 _
   /\s+/

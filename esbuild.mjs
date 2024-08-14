@@ -12,6 +12,7 @@ await Promise.all([
         outfile: 'dist/index.js',
         plugins: [heraPlugin(), civetPlugin()],
         minify: true,
+        sourcemap: true,
     }),
     fs.readdir('img').then(arr =>
         Promise.all(arr.map(el => fs.copyFile(`img/${el}`, `dist/img/${el}`)))
