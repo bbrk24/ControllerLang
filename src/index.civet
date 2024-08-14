@@ -10,7 +10,7 @@ function changeListener(this: HTMLTextAreaElement): void
     output.append ...words.map Word.fromJSON(.).toHTML()
     try console.log parse @value
   catch e
-    console.error e
+    // console.error e
     output.innerText = 'Invalid input'
 
 input := (document.getElementById('input') as HTMLTextAreaElement)

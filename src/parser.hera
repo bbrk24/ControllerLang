@@ -21,10 +21,10 @@ NP
     const adverbs = [$1, ...($3.adverbs ?? [])];
     return { ...$3, adverbs };
   Clause
-  Pronoun ->
-    return { pronoun: $1 };
   Determiner ->
     return { determiner: $1 };
+  Pronoun ->
+    return { pronoun: $1 };
 
 # Actual NP
 FullNP
@@ -49,20 +49,28 @@ Determiner
     if ($1.lt || $1.rt) return $skip;
     return $1;
 
-# The one-letter definitions are placeholders until I decide the actual shape of each type of word
-# Pronouns are a closed class and I can't imagine there being multiple relativizers
-# so those two might just be hardcoded
 Pronoun
-  "p"
+  Word # TODO: are any restrictions necessary here?
 
 Relativizer
-  "r"
+  Word ->
+    if ($1.type !== 'single' || $1.input.lt !== 'LSi') return $skip;
+    return $1;
 
 Intransitive
-  "i"
+  Word ->
+    if ($1.type === 'single') {
+      if ($1.input.lt !== 'LSl') return $skip;
+    } else if ($1.input[1].lt !== 'LSl') return $skip;
+    return $1;
 
 Transitive
-  "t"
+  Word ->
+    if ($1.type === 'single') {
+      if ($1.input.lt !== 'LSr') return $skip;
+    } else if ($1.input[1].lt !== 'LSr') return $skip;
+    return $1;
+
 
 _
   /\s+/

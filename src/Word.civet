@@ -5,7 +5,7 @@ export interface Input
   lt?: string
   rt?: string[]
 
-export type WordJSON =
+export WordJSON ::=
   |{type: 'single', input: Input}
   | type: 'chord', input: Input[]
 

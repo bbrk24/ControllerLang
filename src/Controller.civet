@@ -28,7 +28,9 @@ export default class Controller
 
   get #gamepad?.id
 
-  axisThreshold = 0.7
+  // Calculated s.t. each position takes up 1/8th of the outermost circle
+  axisThreshold = comptime Math.sqrt(2) / (4 * Math.sin(0.375 * Math.PI))
+
   buttonMapping: Partial<Record<number, string>> = [
     'Y'
     'B'

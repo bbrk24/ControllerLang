@@ -1,0 +1,7 @@
+{ type WordJSON } from ../Word.civet
+
+Determiner ::= adverbs?: WordJSON[], determiner: WordJSON
+Pronoun ::= adverbs?: WordJSON[], pronoun: WordJSON
+RelativePhrase ::= noun: WordJSON, relativizer: WordJSON, clause: Clause
+NounPhrase ::= Determiner | Pronoun | RelativePhrase | Clause
+Clause ::= adverbs?: WordJSON[], verb: WordJSON, subject: NounPhrase, object?: NounPhrase
