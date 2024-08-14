@@ -1,5 +1,6 @@
 'civet coffeePrototype'
 
+{ sprintf } from sprintf-js
 dictionaryYaml from ./dictionary.json
 type * as Types from ./types.civet
 UnrecognizedWordError from ./UnrecognizedWordError.civet
@@ -9,16 +10,14 @@ wordToText := (arg: WordJSON) => Word::toString.call arg
 dictionaryInfo := dictionaryYaml as Types.DictionaryInfo
 export Clause ::= Types.Clause
 
-ClauseTranslationContext ::=
-  type: 'clause' | 'noun' | 'default'
-DetTranslationContext ::=
-  type: 'noun' | 'adjective'
-PronounTranslationContext ::=
+TranslationContext ::=
+  type: 'clause' | 'noun' | 'any'
   case: 'subject' | 'object'
 
 TranslationInfo ::=
   person: number
   singular: boolean
+  determiner: boolean
 
 translateAdverb := (word: WordJSON) =>
   text := wordToText word
@@ -30,21 +29,70 @@ translateAdverb := (word: WordJSON) =>
 translateAdverbs := (phrase: { adverbs?: WordJSON[] }) =>
   phrase.adverbs?.map(translateAdverb).join(' ') ?? ''
 
-translatePronoun := (pron: Types.Pronoun, context: PronounTranslationContext) =>
+translatePronoun := (pron: Types.Pronoun, context: TranslationContext) =>
   text := wordToText pron.pronoun
   adverbs := translateAdverbs pron
   unless entry? := dictionaryInfo.pronouns[text]
     throw new UnrecognizedWordError text, 'pronoun'
   fullTrans := adverbs + ' ' + if context.case is 'subject' then entry.subject else entry.object
-  return [fullTrans, { entry.person, entry.singular }] as tuple
+  return [fullTrans, { entry.person, entry.singular, -determiner }] as tuple
 
-translateDeterminer := (det: Types.Determiner, context: DetTranslationContext) =>
+translateDeterminer := (det: Types.Determiner, context: TranslationContext) =>
   text := wordToText det.determiner
   adverbs := translateAdverbs det
   unless entry? := dictionaryInfo.determiners[text]
     throw new UnrecognizedWordError text, 'determiner'
-  fullTrans := adverbs + ' ' + if context.type is 'noun' then entry.noun else entry.adjective
-  return [fullTrans, { person: 3, entry.singular }] as tuple
+  [trans, singular] :=
+    if context.type is 'noun' or not entry.adjective?
+      [entry.noun, entry.singularNoun] as tuple
+    else
+      [entry.adjective, entry.singularAdj!] as tuple
+  fullTrans := `${adverbs} ${trans}`
+  return [fullTrans, { person: 3, singular, +determiner }] as tuple
+
+translateRelative := (phrase: Types.RelativePhrase, context: TranslationContext) =>
+  [baseNoun, info] := translateNP phrase.noun, { context.case, type: 'noun' }
+  [`${baseNoun} that ${translateClause(phrase.clause, { type: 'clause', context.case }).0}`, { ...info, -determiner }] as tuple
+
+translateNP := (phrase: Types.NounPhrase, context: TranslationContext): [string, TranslationInfo] =>
+  if 'pronoun' in phrase
+    return translatePronoun phrase, context
+  if 'determiner' in phrase
+    return translateDeterminer phrase, context
+  if 'relativizer' in phrase
+    return translateRelative phrase, context
+  if 'verb' in phrase
+    return translateClause phrase, { type: 'noun', context.case }
+  phrase satisfies never
+
+translateClause := (clause: Types.Clause, context: TranslationContext) =>
+  adverbs := translateAdverbs clause
+  text := wordToText clause.verb
+  unless entry? := dictionaryInfo.verbs[text]
+    throw new UnrecognizedWordError text, 'verb'
+  [subject, info] := translateNP clause.subject, type: entry.complTypes.0, case: 'subject'
+  let object
+  if clause.object? then [object, ] = translateNP clause.object, type: entry.complTypes.1, case: 'object'
+
+  translationTable :=
+    if context.type is 'noun' or (context.type is 'any' and entry.defaultType is 'noun')
+      if entry.nounTranslation.withDet? and info.determiner then entry.nounTranslation.withDet |> '3s': &, pl: &
+      else entry.nounTranslation.withSubject
+    else entry.verbTranslation
+  
+  fstr :=
+    if info.person is 3 and info.singular
+      translationTable.'3s'
+    else if translationTable.'1s'? and info.person is 1 and info.singular
+      translationTable.'1s'
+    else
+      translationTable.pl
+
+  return [
+    sprintf fstr, subject, object, adverbs
+    { person: 3, +singular, -determiner }
+  ] as tuple
 
 export translate := (clause: Clause) =>
-  ''
+  translateClause(clause, type: 'clause', case: 'subject').0.replace(/^\w/u, .toUpperCase()) + '.'
+

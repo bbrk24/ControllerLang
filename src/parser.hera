@@ -46,7 +46,7 @@ Adverb
 Determiner
   Word ->
     if ($1.type !== 'single') return $skip;
-    if ($1.lt || $1.rt) return $skip;
+    if ($1.input.lt || $1.input.rt) return $skip;
     return $1;
 
 Pronoun

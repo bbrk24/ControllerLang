@@ -2,7 +2,7 @@
 
 export Determiner ::= adverbs?: WordJSON[], determiner: WordJSON
 export Pronoun ::= adverbs?: WordJSON[], pronoun: WordJSON
-export RelativePhrase ::= noun: WordJSON, relativizer: WordJSON, clause: Clause
+export RelativePhrase ::= noun: NounPhrase, relativizer: WordJSON, clause: Clause
 export NounPhrase ::= Determiner | Pronoun | RelativePhrase | Clause
 export Clause ::= adverbs?: WordJSON[], verb: WordJSON, subject: NounPhrase, object?: NounPhrase
 
@@ -12,7 +12,7 @@ VerbTrans ::=
   pl: string
 
 export DictVerb ::=
-  complTypes: ('noun' | 'clause' | 'default')[][]
+  complTypes: ('noun' | 'clause' | 'any')[]
   defaultType: 'noun' | 'clause'
   nounTranslation:
     withSubject: VerbTrans
@@ -26,9 +26,10 @@ export DictPron ::=
   singular: boolean
 
 export DictDet ::=
-  adjective: string
+  adjective?: string
   noun: string
-  singular: boolean
+  singularNoun: boolean
+  singularAdj?: boolean
 
 export DictionaryInfo ::=
   pronouns: Partial<Record<string, DictPron>>

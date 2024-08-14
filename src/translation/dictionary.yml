@@ -1,19 +1,79 @@
-pronouns: {}
-determiners: {}
+pronouns:
+  B:
+    subject: I
+    object: me
+    person: 1
+    singular: true
+  X:
+    subject: you
+    object: you
+    person: 2
+    singular: true
+determiners:
+  R:
+    adjective: the
+    noun: the one
+    singularAdj: true
+    singularNoun: true
+  L:
+    adjective: a
+    noun: some
+    singularNoun: false
+    singularAdj: true
+  ZL:
+    noun: to
+    singularNoun: false
+  ZR:
+    adjective: which
+    noun: what
+    singularAdj: false
+    singularNoun: false
 verbs:
   LSr:
-    complTypes:
-      - [noun, noun]
+    complTypes: [noun, noun]
     defaultType: clause
     nounTranslation:
       withSubject:
-        1s: 'the fact that %1$s am %2$s'
-        3s: 'the fact that %1$s is %2$s'
-        pl: 'the fact that %1$s are %2$s'
+        1s: 'the fact that %1$s %3$s am %2$s'
+        3s: 'the fact that %1$s %3$s is %2$s'
+        pl: 'the fact that %1$s %3$s are %2$s'
     verbTranslation:
-      1s: '%1$s am %2$s'
-      3s: '%1$s is %2$s'
-      pl: '%1$s are %2$s'
-
+      1s: '%1$s %3$s am %2$s'
+      3s: '%1$s %3$s is %2$s'
+      pl: '%1$s %3$s are %2$s'
+  LSl:
+    complTypes: [noun]
+    defaultType: clause
+    nounTranslation:
+      withDet: '%1$s %3$s thing'
+      withSubject:
+        pl: 'the fact that %1$s %3$s exist'
+        3s: 'the fact that %1$s %3$s exists'
+    verbTranslation:
+      pl: '%1$s %3$s exist'
+      3s: '%1$s %3$s exists'
+  LSl+A:
+    complTypes: [any]
+    defaultType: clause
+    nounTranslation:
+      withSubject:
+        pl: '%3$s red %1$s'
+        3s: '%3$s red %1$s'
+    verbTranslation:
+      1s: '%1$s am %3$s red'
+      3s: '%1$s is %3$s red'
+      pl: '%1$s are %3$s red'
+  LSl+X+ZR:
+    complTypes: [any]
+    defaultType: noun
+    nounTranslation:
+      withSubject:
+        pl: '%3$s human %1$s'
+        3s: '%3$s human %1$s'
+      withDet: '%1$s %3$s human'
+    verbTranslation:
+      1s: '%1$s am %3$s human'
+      3s: '%1$s is %3$s human'
+      pl: '%1$s are %3$s human'
 adverbs:
   M: not
