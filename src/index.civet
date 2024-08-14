@@ -1,5 +1,6 @@
 { parse } from ./parser.hera
 { Word, type WordJSON } from ./Word.civet
+{ translate, type Clause } from ./translation
 
 output := document.getElementById('output')!
 
@@ -8,7 +9,7 @@ function changeListener(this: HTMLTextAreaElement): void
     words: WordJSON[] := parse @value, startRule: 'Words'
     output.innerHTML = ''
     output.append ...words.map Word.fromJSON(.).toHTML()
-    try console.log parse @value
+    try console.log (parse(@value) as Clause[]).map translate .
   catch e
     // console.error e
     output.innerText = 'Invalid input'

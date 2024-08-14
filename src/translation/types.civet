@@ -1,7 +1,37 @@
-{ type WordJSON } from ../Word.civet
+{ Word, type WordJSON } from ../Word.civet
 
-Determiner ::= adverbs?: WordJSON[], determiner: WordJSON
-Pronoun ::= adverbs?: WordJSON[], pronoun: WordJSON
-RelativePhrase ::= noun: WordJSON, relativizer: WordJSON, clause: Clause
-NounPhrase ::= Determiner | Pronoun | RelativePhrase | Clause
-Clause ::= adverbs?: WordJSON[], verb: WordJSON, subject: NounPhrase, object?: NounPhrase
+export Determiner ::= adverbs?: WordJSON[], determiner: WordJSON
+export Pronoun ::= adverbs?: WordJSON[], pronoun: WordJSON
+export RelativePhrase ::= noun: WordJSON, relativizer: WordJSON, clause: Clause
+export NounPhrase ::= Determiner | Pronoun | RelativePhrase | Clause
+export Clause ::= adverbs?: WordJSON[], verb: WordJSON, subject: NounPhrase, object?: NounPhrase
+
+VerbTrans ::= 
+  '1s'?: string
+  '3s': string
+  pl: string
+
+export DictVerb ::=
+  complTypes: ('noun' | 'clause' | 'default')[][]
+  defaultType: 'noun' | 'clause'
+  nounTranslation:
+    withSubject: VerbTrans
+    withDet?: string
+  verbTranslation: VerbTrans
+
+export DictPron ::=
+  subject: string
+  object: string
+  person: number
+  singular: boolean
+
+export DictDet ::=
+  adjective: string
+  noun: string
+  singular: boolean
+
+export DictionaryInfo ::=
+  pronouns: Partial<Record<string, DictPron>>
+  determiners: Partial<Record<string, DictDet>>
+  verbs: Partial<Record<string, DictVerb>>
+  adverbs: Partial<Record<string, string>>

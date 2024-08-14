@@ -1,0 +1,50 @@
+'civet coffeePrototype'
+
+dictionaryYaml from ./dictionary.json
+type * as Types from ./types.civet
+UnrecognizedWordError from ./UnrecognizedWordError.civet
+{ Word, type WordJSON } from ../Word.civet
+
+wordToText := (arg: WordJSON) => Word::toString.call arg
+dictionaryInfo := dictionaryYaml as Types.DictionaryInfo
+export Clause ::= Types.Clause
+
+ClauseTranslationContext ::=
+  type: 'clause' | 'noun' | 'default'
+DetTranslationContext ::=
+  type: 'noun' | 'adjective'
+PronounTranslationContext ::=
+  case: 'subject' | 'object'
+
+TranslationInfo ::=
+  person: number
+  singular: boolean
+
+translateAdverb := (word: WordJSON) =>
+  text := wordToText word
+  if entry? := dictionaryInfo.adverbs[text]
+    return entry
+  else
+    throw new UnrecognizedWordError text, 'adverb'
+
+translateAdverbs := (phrase: { adverbs?: WordJSON[] }) =>
+  phrase.adverbs?.map(translateAdverb).join(' ') ?? ''
+
+translatePronoun := (pron: Types.Pronoun, context: PronounTranslationContext) =>
+  text := wordToText pron.pronoun
+  adverbs := translateAdverbs pron
+  unless entry? := dictionaryInfo.pronouns[text]
+    throw new UnrecognizedWordError text, 'pronoun'
+  fullTrans := adverbs + ' ' + if context.case is 'subject' then entry.subject else entry.object
+  return [fullTrans, { entry.person, entry.singular }] as tuple
+
+translateDeterminer := (det: Types.Determiner, context: DetTranslationContext) =>
+  text := wordToText det.determiner
+  adverbs := translateAdverbs det
+  unless entry? := dictionaryInfo.determiners[text]
+    throw new UnrecognizedWordError text, 'determiner'
+  fullTrans := adverbs + ' ' + if context.type is 'noun' then entry.noun else entry.adjective
+  return [fullTrans, { person: 3, entry.singular }] as tuple
+
+export translate := (clause: Clause) =>
+  ''

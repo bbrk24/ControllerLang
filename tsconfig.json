@@ -2,6 +2,9 @@
     "compilerOptions": {
         "lib": ["DOM", "ES2022"],
         "strict": true,
-        "target": "ES2022"
+        "target": "ES2022",
+        "moduleResolution": "NodeNext",
+        "module": "NodeNext",
+        "resolveJsonModule": true,
     }
 }

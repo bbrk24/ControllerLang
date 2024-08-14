@@ -4,6 +4,7 @@ export interface Input
   s?: string[]
   lt?: string
   rt?: string[]
+  text: string
 
 export WordJSON ::=
   |{type: 'single', input: Input}
@@ -65,6 +66,13 @@ export class Word
     new @
       ||> .type = json.type
       ||> .input = json.input
+  
+  toString(this: Word | WordJSON)
+    self := @ as! WordJSON // not really true but I can't make TS happy otherwise
+    if Array.isArray self.input
+      `[${self.input.map(.text).join ' '}]`
+    else
+      self.input.text
 
   toHTML(): HTMLElement
     type := @type

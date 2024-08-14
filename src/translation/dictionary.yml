@@ -1,0 +1,19 @@
+pronouns: {}
+determiners: {}
+verbs:
+  LSr:
+    complTypes:
+      - [noun, noun]
+    defaultType: clause
+    nounTranslation:
+      withSubject:
+        1s: 'the fact that %1$s am %2$s'
+        3s: 'the fact that %1$s is %2$s'
+        pl: 'the fact that %1$s are %2$s'
+    verbTranslation:
+      1s: '%1$s am %2$s'
+      3s: '%1$s is %2$s'
+      pl: '%1$s are %2$s'
+
+adverbs:
+  M: not
