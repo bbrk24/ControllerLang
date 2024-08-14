@@ -40,6 +40,7 @@ export default class Controller
     'P'
     'LSi'
     'RSi'
+    'home'
   ]
   // Two values is a traditional axis, more is something cursed like my D-pad
   axisMapping: Partial<Record<number, string[]>> = {

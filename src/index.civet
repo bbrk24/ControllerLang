@@ -85,10 +85,13 @@ setInterval
         inputs.forEach totalInputs.add .
       else
         if totalInputs.size
-          mergeAxes totalInputs
-          inArr := Array.from totalInputs
-            .sort (a, b) => inputOrder.indexOf(a) - inputOrder.indexOf(b)
-          input.value += ' ' + inArr.join '+'
+          if totalInputs.has 'home'
+            input.value = input.value.replace /\s\S+$/u, ''
+          else
+            mergeAxes totalInputs
+            inArr := Array.from totalInputs
+              .sort (a, b) => inputOrder.indexOf(a) - inputOrder.indexOf(b)
+            input.value += ' ' + inArr.join '+'
           changeListener.call input
         totalInputs = new Set
   comptime Math.ceil 1000/30
