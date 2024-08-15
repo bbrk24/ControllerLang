@@ -1,7 +1,8 @@
 { parse } from ./parser.hera
 { Word, type WordJSON } from ./Word.civet
 { translate, type Clause } from ./translation/index.civet
-Controller from ./Controller.civet
+{ Controller, presets } from ./Controller.civet
+controllerSelectionMenu from ./controllerSelectionScreen.civet
 
 output := document.getElementById('output')!
 translation := document.getElementById('translation')!
@@ -75,7 +76,34 @@ inputOrder := [
   'ZR'
 ]
 
-controller := new Controller 0
+controller := new Controller 0, presets.1
+
+document.getElementById('controller-config')!
+  .addEventListener
+    'click'
+    :void =>
+      popup := document.createElement 'div'
+        ||> .appendChild controllerSelectionMenu.show controller
+        ||> .className = 'popup'
+      document.createElement 'p'
+        ||> .innerText = 'Currently, custom configs are not supported. There are two presets you can choose from.'
+        |> popup.appendChild
+      document.createElement 'p'
+        ||> .innerText = 'After connecting a controller, you may need to press a button in order for it to appear in the dropdown menu.'
+        |> popup.appendChild
+      document.createElement 'button'
+        ||> .type = 'button'
+        ||> .innerText = 'Close'
+        ||> popup.appendChild
+        |> .addEventListener
+          'click'
+          =>
+            popup.remove()
+            controllerSelectionMenu.onHide()
+          { +passive }
+      document.body.appendChild popup
+    { +passive }
+
 totalInputs .= new Set<string>
 setInterval
   =>

@@ -1,4 +1,4 @@
-div, span {
+#output, #output div, #output span {
     display: flex;
     flex-flow: row wrap;
     align-items: center;
@@ -19,4 +19,18 @@ img {
     border: max(1px, 0.0625em) solid black;
     padding: 0.125em;
     flex-wrap: nowrap;
+}
+
+/** TODO: fix... everything about this */
+.popup {
+    border: max(1em, calc(50vw - 13em)) solid rgba(127 127 127 / 0.5);
+    border-top-width: 3em;
+    border-bottom-width: max(3em, 100vh - 16em);
+    padding: 0.5em;
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
 }

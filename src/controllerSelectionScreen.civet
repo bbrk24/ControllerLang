@@ -1,0 +1,67 @@
+{ type Controller, presets } from ./Controller.civet
+
+GamepadCallback ::= (this: Window, e: GamepadEvent) => void
+
+callbackSymbol := Symbol 'callbacks'
+
+export default controllerSelectionMenu := {
+  [callbackSymbol]: (=>) as GamepadCallback
+  show(controller: Controller): HTMLElement
+    controllerSelect := document.createElement 'select'
+      ||> .id = 'controller-select'
+
+    setSelectOptions := :void =>
+      selectedOption := controller.index
+      options := navigator.getGamepads()
+        .filter &?
+        .map (el) =>
+          document.createElement 'option'
+            ||> .innerText = el.id
+            ||> .value = String el.index
+      controllerSelect.innerHTML = ''
+      if options#
+        controllerSelect.append ...options
+        setTimeout => controllerSelect.value = String selectedOption
+      else
+        document.createElement 'option'
+          ||> .disabled = true
+          ||> .innerText = 'Please connect a controller'
+          |> controllerSelect.appendChild
+    setSelectOptions()
+    @[callbackSymbol] = setSelectOptions
+
+    window.addEventListener 'gamepadconnected', @[callbackSymbol]
+    window.addEventListener 'gamepaddisconnected', @[callbackSymbol]
+    controllerSelect.addEventListener
+      'change'
+      -> controller.index = +@value
+      { +passive }
+
+    presetSelect := document.createElement 'select'
+      ||> .id = 'preset-select'
+    for i of [0...presets#]
+      document.createElement 'option'
+        ||> .innerText = `Preset ${i + 1}`
+        |> presetSelect.appendChild
+    presetSelect.selectedIndex = presets.findIndex (el) =>
+      (and)
+        el.axisThreshold is controller.axisThreshold
+        el.buttonMapping is controller.buttonMapping
+    presetSelect.addEventListener
+      'change'
+      -> controller.preferencesJSON = presets[@selectedIndex]
+      { +passive }
+
+    controllerLabel := document.createElement 'label'
+      ||> .innerText = 'Controller'
+      ||> .htmlFor = controllerSelect.id
+    presetLabel := document.createElement 'label'
+      ||> .innerText = 'Control Scheme'
+      ||> .htmlFor = presetSelect.id
+
+    return document.createElement 'div'
+      ||> .append controllerLabel, ' ', controllerSelect, document.createElement('br'), presetLabel, ' ', presetSelect
+  onHide()
+    window.removeEventListener 'gamepadconnected', @[callbackSymbol]
+    window.removeEventListener 'gamepaddisconnected', @[callbackSymbol]
+}

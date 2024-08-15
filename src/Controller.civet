@@ -1,9 +1,13 @@
 export interface ControllerPreferences
   axisThreshold: number
   buttonMapping: Partial<Record<number, string>>
+  // Two values is a traditional axis, more is something cursed like my D-pad
   axisMapping: Partial<Record<number, string[]>>
 
-export default class Controller
+// Calculated s.t. each position takes up 1/8th of the outermost circle
+defaultAxisThreshold := comptime Math.sqrt(2) / (4 * Math.sin(0.375 * Math.PI))
+
+export class Controller
   #gamepad: Gamepad?
   #index: number
 
@@ -24,35 +28,13 @@ export default class Controller
 
   get #gamepad?.id
 
-  // Calculated s.t. each position takes up 1/8th of the outermost circle
-  axisThreshold = comptime Math.sqrt(2) / (4 * Math.sin(0.375 * Math.PI))
+  axisThreshold = defaultAxisThreshold
+  buttonMapping: Partial<Record<number, string>> = {}
+  axisMapping: Partial<Record<number, string[]>> = {}
 
-  buttonMapping: Partial<Record<number, string>> = [
-    'Y'
-    'B'
-    'A'
-    'X'
-    'L'
-    'R'
-    'ZL'
-    'ZR'
-    'M'
-    'P'
-    'LSi'
-    'RSi'
-    'home'
-  ]
-  // Two values is a traditional axis, more is something cursed like my D-pad
-  axisMapping: Partial<Record<number, string[]>> = {
-    0: ['LSl', 'LSr']
-    1: ['LSu', 'LSd']
-    2: ['RSl', 'RSr']
-    5: ['RSu', 'RSd']
-    9: ['Du', 'Dr', 'Dd', 'Dl']
-  }
-
-  @(index: number)
+  @(index: number, preferences: ControllerPreferences)
     #index = index
+    @preferencesJSON = preferences
     window.addEventListener 'gamepadconnected', #connectListener
     window.addEventListener 'gamepaddisconnected', #disconnectListener
     setTimeout => #autodetectGamepad()
@@ -64,11 +46,7 @@ export default class Controller
       #gamepad = gamepads[#index] ?? undefined
 
   get preferencesJSON(): ControllerPreferences
-    {
-      @axisThreshold
-      buttonMapping: {...@buttonMapping}
-      axisMapping: structuredClone @axisMapping
-    }
+    { @axisThreshold, @buttonMapping, @axisMapping }
   set preferencesJSON(newValue: ControllerPreferences)
     { @axisThreshold, @buttonMapping, @axisMapping } = newValue
   
@@ -92,3 +70,61 @@ export default class Controller
         []
     new Set axes ++ buttons
 
+export presets: ControllerPreferences[] := [
+  // Based on my brother's MarioKart controller and Conor's Xbox controller
+  // Both use the same mappings
+  {
+    buttonMapping: [
+      'A'
+      'B'
+      'X'
+      'Y'
+      'L'
+      'R'
+      'ZL'
+      'ZR'
+      'M'
+      'P'
+      'LSi'
+      'RSi'
+      'Du'
+      'Dd'
+      'Dl'
+      'Dr'
+      'home'
+    ]
+    axisMapping: [
+      ['LSl', 'LSr']
+      ['LSu', 'LSd']
+      ['RSl', 'RSr']
+      ['RSu', 'RSd']
+    ]
+    axisThreshold: defaultAxisThreshold
+  }
+  // Based on my wired Nintendo Switch controller
+  {
+    buttonMapping: [
+      'Y'
+      'B'
+      'A'
+      'X'
+      'L'
+      'R'
+      'ZL'
+      'ZR'
+      'M'
+      'P'
+      'LSi'
+      'RSi'
+      'home'
+    ]
+    axisMapping: {
+      0: ['LSl', 'LSr']
+      1: ['LSu', 'LSd']
+      2: ['RSl', 'RSr']
+      5: ['RSu', 'RSd']
+      9: ['Du', 'Dr', 'Dd', 'Dl']
+    }
+    axisThreshold: defaultAxisThreshold
+  }
+]
