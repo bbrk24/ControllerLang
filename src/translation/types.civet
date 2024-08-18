@@ -12,7 +12,7 @@ VerbTrans ::=
   pl: string
 
 export DictVerb ::=
-  complTypes: ('noun' | 'clause' | 'any')[]
+  complTypes: ('noun' | 'clause' | 'adjective')[][]
   defaultType: 'noun' | 'clause'
   nounTranslation:
     withSubject: VerbTrans

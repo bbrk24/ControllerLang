@@ -6,12 +6,12 @@ type * as Types from ./types.civet
 UnrecognizedWordError from ./UnrecognizedWordError.civet
 { Word, type WordJSON } from ../Word.civet
 
-wordToText := (arg: WordJSON) => Word::toString.call arg
+wordToText := (arg: WordJSON) => Word.fromJSON(arg).toString()
 dictionaryInfo := dictionaryYaml as Types.DictionaryInfo
 export Clause ::= Types.Clause
 
 TranslationContext ::=
-  type: 'clause' | 'noun' | 'any'
+  type: ('noun' | 'clause' | 'adjective')[]
   case: 'subject' | 'object'
 
 TranslationInfo ::=
@@ -43,16 +43,16 @@ translateDeterminer := (det: Types.Determiner, context: TranslationContext) =>
   unless entry? := dictionaryInfo.determiners[text]
     throw new UnrecognizedWordError text, 'determiner'
   [trans, singular] :=
-    if context.type is 'noun' or not entry.adjective?
-      [entry.noun, entry.singularNoun] as tuple
-    else
+    if 'adjective' is in context.type and entry.adjective?
       [entry.adjective, entry.singularAdj!] as tuple
+    else
+      [entry.noun, entry.singularNoun] as tuple
   fullTrans := `${adverbs} ${trans}`
   return [fullTrans, { person: 3, singular, +determiner }] as tuple
 
 translateRelative := (phrase: Types.RelativePhrase, context: TranslationContext) =>
-  [baseNoun, info] := translateNP phrase.noun, { context.case, type: 'noun' }
-  [`${baseNoun} that ${translateClause(phrase.clause, { type: 'clause', context.case }).0}`, { ...info, -determiner }] as tuple
+  [baseNoun, info] := translateNP phrase.noun, { context.case, type: ['noun'] }
+  [`${baseNoun} that ${translateClause(phrase.clause, { type: ['clause'], context.case }).0}`, { ...info, -determiner }] as tuple
 
 translateNP := (phrase: Types.NounPhrase, context: TranslationContext): [string, TranslationInfo] =>
   if 'pronoun' in phrase
@@ -62,7 +62,7 @@ translateNP := (phrase: Types.NounPhrase, context: TranslationContext): [string,
   if 'relativizer' in phrase
     return translateRelative phrase, context
   if 'verb' in phrase
-    return translateClause phrase, { type: 'noun', context.case }
+    return translateClause phrase, { type: ['noun'], context.case }
   phrase satisfies never
 
 translateClause := (clause: Types.Clause, context: TranslationContext) =>
@@ -75,7 +75,7 @@ translateClause := (clause: Types.Clause, context: TranslationContext) =>
   if clause.object? then [object, ] = translateNP clause.object, type: entry.complTypes.1, case: 'object'
 
   translationTable :=
-    if context.type is 'noun' or (context.type is 'any' and entry.defaultType is 'noun')
+    if entry.defaultType is 'noun' ? 'noun' is in context.type : 'clause' is not in context.type
       if entry.nounTranslation.withDet? and info.determiner then entry.nounTranslation.withDet |> '3s': &, pl: &
       else entry.nounTranslation.withSubject
     else entry.verbTranslation
@@ -94,5 +94,5 @@ translateClause := (clause: Types.Clause, context: TranslationContext) =>
   ] as tuple
 
 export translate := (clause: Clause) =>
-  translateClause(clause, type: 'clause', case: 'subject').0.replace(/^\w/u, .toUpperCase()) + '.'
+  translateClause(clause, type: ['clause'], case: 'subject').0.replace(/^\w/u, .toUpperCase()) + '.'
 

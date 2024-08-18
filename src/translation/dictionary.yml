@@ -29,8 +29,12 @@ determiners:
     singularAdj: false
     singularNoun: false
 verbs:
+  # complTypes indicates the type of argument it can take. 'adjective' only applies to noun form,
+  # and 'clause' only applies to verb form, so just [adjective] or just [clause] is ill-formed.
   LSr:
-    complTypes: [noun, noun]
+    complTypes:
+      - [noun]
+      - [noun]
     defaultType: clause
     nounTranslation:
       withSubject:
@@ -42,7 +46,8 @@ verbs:
       3s: '%1$s %3$s is %2$s'
       pl: '%1$s %3$s are %2$s'
   LSl:
-    complTypes: [noun]
+    complTypes:
+      - [noun]
     defaultType: clause
     nounTranslation:
       withDet: '%1$s %3$s thing'
@@ -53,7 +58,8 @@ verbs:
       pl: '%1$s %3$s exist'
       3s: '%1$s %3$s exists'
   LSl+A:
-    complTypes: [any]
+    complTypes:
+      - [adjective, noun]
     defaultType: clause
     nounTranslation:
       withSubject:
@@ -64,7 +70,8 @@ verbs:
       3s: '%1$s is %3$s red'
       pl: '%1$s are %3$s red'
   LSl+X+ZR:
-    complTypes: [any]
+    complTypes:
+      - [adjective, noun]
     defaultType: noun
     nounTranslation:
       withSubject:

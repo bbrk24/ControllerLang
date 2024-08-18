@@ -67,12 +67,11 @@ export class Word
       ||> .type = json.type
       ||> .input = json.input
   
-  toString(this: Word | WordJSON)
-    self := @ as! WordJSON // not really true but I can't make TS happy otherwise
-    if Array.isArray self.input
-      `[${self.input.map(.text).join ' '}]`
+  toString()
+    if Array.isArray @input
+      `[${@input.map(.text).join ' '}]`
     else
-      self.input.text
+      @input.text
 
   toHTML(): HTMLElement
     type := @type
